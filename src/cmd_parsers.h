@@ -17,16 +17,16 @@
  */
 
 struct user_input {
-	char *cmd;
-	char **args;
-	int num_args;
+  char *cmd;
+  char **args;
+  int num_args;
 };
 
 /*
  * Parses the string into a user_input struct object.
  * The string is assumed to take the format of
  *
- * 	cmd arg1 arg2 arg3 ... argn
+ *   cmd arg1 arg2 arg3 ... argn
  *
  * If no cmd is provided (i.e. an empty string), the 'cmd' and 'args' fields are set to NULL.
  * If a cmd is provided, but with no args, only the 'args' field is set to NULL.
