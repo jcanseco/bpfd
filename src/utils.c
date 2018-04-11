@@ -17,15 +17,15 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
 #include "utils.h"
 #include <dirent.h>
-#include <sys/types.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 /* Read a file on the local fs to stdout */
 int cat_file(char *path) {
@@ -50,7 +50,7 @@ int cat_file(char *path) {
 int cat_tracefs_file(char *tracefs, char *fn) {
   int res = 0;
 
-  int buf_len = strlen(tracefs) + strlen(fn) + 2; // +2 for '/' and '\0'
+  int buf_len = strlen(tracefs) + strlen(fn) + 2;  // +2 for '/' and '\0'
   char *tracef = (char *)malloc(buf_len);
   snprintf(tracef, buf_len, "%s/%s", tracefs, fn);
 
@@ -92,7 +92,7 @@ int cat_dir(char *path, int dirs_only) {
 
     printf("%s\n", ep->d_name);
   }
-  closedir (dp);
+  closedir(dp);
 
   return 0;
 }

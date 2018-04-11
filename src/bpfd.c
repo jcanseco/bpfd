@@ -16,24 +16,24 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <inttypes.h>
+#include <linux/bpf.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <linux/bpf.h>
-#include <arpa/inet.h>
-#include <inttypes.h>
+#include <unistd.h>
 
-#include "bpfd.h"
 #include "bcc_syms.h"
+#include "bpfd.h"
 
-#define LINEBUF_SIZE  2000000
+#define LINEBUF_SIZE 2000000
 
-#define DEFAULT_MAX_PID  32768
+#define DEFAULT_MAX_PID 32768
 
 struct usym_cache {
   int pid;
@@ -112,8 +112,10 @@ int bpf_remote_update_elem(int map_fd, char *kstr, int klen, char *lstr,
   ret = bpf_update_elem(map_fd, kbin, lbin, flags);
 
 err_update:
-  if (kbin) free(kbin);
-  if (lbin) free(lbin);
+  if (kbin)
+    free(kbin);
+  if (lbin)
+    free(lbin);
   return ret;
 }
 
@@ -131,18 +133,20 @@ char *bpf_remote_lookup_elem(int map_fd, char *kstr, int klen, int llen) {
 
   lstr = (char *)malloc(llen * 4);
 
-  if (!lstr ||
-      !base64_decode(kstr, kbin, klen) ||
+  if (!lstr || !base64_decode(kstr, kbin, klen) ||
       (bpf_lookup_elem(map_fd, kbin, lbin) < 0))
     goto err_update;
 
-  if (base64_encode(lbin, llen, lstr, llen*4))
+  if (base64_encode(lbin, llen, lstr, llen * 4))
     rets = (char *)lstr;
 
 err_update:
-  if (lbin) free(lbin);
-  if (kbin) free(kbin);
-  if (!rets && lstr) free(lstr);
+  if (lbin)
+    free(lbin);
+  if (kbin)
+    free(kbin);
+  if (!rets && lstr)
+    free(lstr);
   return rets;
 }
 
@@ -151,9 +155,9 @@ char *bpf_remote_get_first_key_dump_all(int map_fd, int klen, int llen) {
   int ret, dump_buf_len = 4096, dump_used = 1;
   char *dump_buf, *kstr, *lstr, *rets = NULL;
 
-  /* length of base64 buffer with newlines considered */
-  #define KSTR_SIZE ((klen * 2) + 2)
-  #define LSTR_SIZE ((llen * 2) + 2)
+/* length of base64 buffer with newlines considered */
+#define KSTR_SIZE ((klen * 2) + 2)
+#define LSTR_SIZE ((llen * 2) + 2)
 
   dump_buf = (char *)malloc(dump_buf_len);
   kbin = (void *)malloc(klen);
@@ -171,13 +175,14 @@ char *bpf_remote_get_first_key_dump_all(int map_fd, int klen, int llen) {
 
   do {
     next_kbin = (void *)malloc(klen);
-    if (!next_kbin) goto err_get;
+    if (!next_kbin)
+      goto err_get;
 
     if (bpf_lookup_elem(map_fd, kbin, lbin) < 0)
       goto err_get;
 
-    if (!base64_encode(kbin, klen, kstr, KSTR_SIZE)
-      || !base64_encode(lbin, llen, lstr, LSTR_SIZE))
+    if (!base64_encode(kbin, klen, kstr, KSTR_SIZE) ||
+        !base64_encode(lbin, llen, lstr, LSTR_SIZE))
       goto err_get;
 
     if (dump_buf_len - dump_used < (LSTR_SIZE + KSTR_SIZE)) {
@@ -204,14 +209,20 @@ char *bpf_remote_get_first_key_dump_all(int map_fd, int klen, int llen) {
 
 err_get:
   printf("bpf_remote_get_first_key_dump_all: error condition\n");
-  if (dump_buf) free(dump_buf);
+  if (dump_buf)
+    free(dump_buf);
 
 get_done:
-  if (kbin) free(kbin);
-  if (lbin) free(lbin);
-  if (kstr) free(kstr);
-  if (lstr) free(lstr);
-  if (next_kbin) free(next_kbin);
+  if (kbin)
+    free(kbin);
+  if (lbin)
+    free(lbin);
+  if (kstr)
+    free(kstr);
+  if (lstr)
+    free(lstr);
+  if (next_kbin)
+    free(next_kbin);
   return rets;
 }
 
@@ -227,12 +238,14 @@ char *bpf_remote_get_first_key(int map_fd, int klen) {
   if (!kstr || bpf_get_first_key(map_fd, kbin, klen) < 0)
     goto err_get;
 
-  if (base64_encode(kbin, klen, kstr, klen*4))
+  if (base64_encode(kbin, klen, kstr, klen * 4))
     rets = kstr;
 
 err_get:
-  if (kbin) free(kbin);
-  if (!rets && kstr) free(kstr);
+  if (kbin)
+    free(kbin);
+  if (!rets && kstr)
+    free(kstr);
   return rets;
 }
 
@@ -250,18 +263,20 @@ char *bpf_remote_get_next_key(int map_fd, char *kstr, int klen) {
 
   next_kstr = (char *)malloc(klen * 4);
 
-  if (!next_kstr ||
-      !base64_decode(kstr, kbin, klen) ||
+  if (!next_kstr || !base64_decode(kstr, kbin, klen) ||
       (bpf_get_next_key(map_fd, kbin, next_kbin) < 0))
     goto err_update;
 
-  if (base64_encode(next_kbin, klen, next_kstr, klen*4))
+  if (base64_encode(next_kbin, klen, next_kstr, klen * 4))
     rets = (char *)next_kstr;
 
 err_update:
-  if (kbin) free(kbin);
-  if (next_kbin) free(next_kbin);
-  if (!rets && next_kstr) free(next_kstr);
+  if (kbin)
+    free(kbin);
+  if (next_kbin)
+    free(next_kbin);
+  if (!rets && next_kstr)
+    free(next_kstr);
   return rets;
 }
 
@@ -280,7 +295,8 @@ int bpf_remote_delete_elem(int map_fd, char *kstr, int klen) {
   ret = bpf_delete_elem(map_fd, kbin);
 
 err_update:
-  if (kbin) free(kbin);
+  if (kbin)
+    free(kbin);
   return ret;
 }
 
@@ -325,8 +341,10 @@ int bpf_clear_map(int map_fd, int klen) {
   ret = count;
 
 err_clear:
-  if (kbin) free(kbin);
-  if (next_kbin) free(next_kbin);
+  if (kbin)
+    free(kbin);
+  if (next_kbin)
+    free(next_kbin);
   return ret;
 }
 
@@ -345,11 +363,13 @@ char *get_pid_exe(int pid) {
   return exe_path;
 }
 
-struct usym_cache *get_or_set_usym_cache(int pid, struct usym_cache *usym_caches[]) {
+struct usym_cache *get_or_set_usym_cache(int pid,
+                                         struct usym_cache *usym_caches[]) {
   struct usym_cache *usym_cache = usym_caches[pid % DEFAULT_MAX_PID];
 
   char *exe_path = get_pid_exe(pid);
-  if (!usym_cache || usym_cache->pid != pid || strcmp(usym_cache->exe_path, exe_path)) {
+  if (!usym_cache || usym_cache->pid != pid ||
+      strcmp(usym_cache->exe_path, exe_path)) {
     if (!usym_cache) {
       usym_cache = (struct usym_cache *)malloc(sizeof(struct usym_cache));
     } else {
@@ -388,7 +408,8 @@ int main(int argc, char **argv) {
   char line_buf[LINEBUF_SIZE];
   int arg_index = 0;
   void *ksym_cache = NULL;
-  struct usym_cache **usym_caches = (struct usym_cache **)calloc(DEFAULT_MAX_PID, sizeof(struct usym_cache *));
+  struct usym_cache **usym_caches = (struct usym_cache **)calloc(
+      DEFAULT_MAX_PID, sizeof(struct usym_cache *));
 
   printf("STARTED_BPFD\n");
 
@@ -449,7 +470,6 @@ int main(int argc, char **argv) {
         goto invalid_command;
 
     } else if (!strcmp(in->cmd, "BPF_PROG_LOAD")) {
-
       int prog_len, type;
       char *license, *bin_data, *name;
       unsigned int kern_version;
@@ -463,7 +483,8 @@ int main(int argc, char **argv) {
 
       if (!strcmp(name, "__none__"))
         name = NULL;
-      bpf_prog_load_handle(type, name, bin_data, prog_len, license, kern_version);
+      bpf_prog_load_handle(type, name, bin_data, prog_len, license,
+                           kern_version);
 
     } else if (!strcmp(in->cmd, "BPF_ATTACH_KPROBE")) {
       int ret, prog_fd, type;
@@ -610,7 +631,8 @@ int main(int argc, char **argv) {
         printf("bpf_lookup_elem: ret=%d\n", -1);
       else
         printf("%s\n", lstr);
-      if (lstr) free(lstr);
+      if (lstr)
+        free(lstr);
 
     } else if (!strcmp(in->cmd, "BPF_GET_FIRST_KEY")) {
       int map_fd, klen, llen, dump_all;
@@ -630,7 +652,8 @@ int main(int argc, char **argv) {
         printf("bpf_get_first_key: ret=%d\n", -1);
       else
         printf("%s\n", kstr);
-      if (kstr) free(kstr);
+      if (kstr)
+        free(kstr);
 
     } else if (!strcmp(in->cmd, "BPF_GET_NEXT_KEY")) {
       int map_fd, klen;
@@ -645,7 +668,8 @@ int main(int argc, char **argv) {
         printf("bpf_get_next_key: ret=%d\n", -1);
       else
         printf("%s\n", next_kstr);
-      if (next_kstr) free(next_kstr);
+      if (next_kstr)
+        free(next_kstr);
 
     } else if (!strcmp(in->cmd, "BPF_DELETE_ELEM")) {
       int map_fd, klen, ret;
@@ -692,28 +716,28 @@ int main(int argc, char **argv) {
 
       PARSE_UINT64(addr);
 
-      if(!ksym_cache)
+      if (!ksym_cache)
         ksym_cache = bcc_symcache_new(-1, NULL);
 
       ret = bcc_symcache_resolve_no_demangle(ksym_cache, addr, &sym);
       printf("GET_KSYM_NAME: ret=%d\n", ret);
       if (!ret)
-        printf("%s;%"PRIu64";%s\n", sym.name, sym.offset, sym.module);
+        printf("%s;%" PRIu64 ";%s\n", sym.name, sym.offset, sym.module);
 
     } else if (!strcmp(in->cmd, "GET_KSYM_ADDR")) {
       int ret;
-      char* name;
+      char *name;
       uint64_t addr;
 
       PARSE_STR(name);
 
-      if(!ksym_cache)
+      if (!ksym_cache)
         ksym_cache = bcc_symcache_new(-1, NULL);
 
       ret = bcc_symcache_resolve_name(ksym_cache, NULL, name, &addr);
       printf("GET_KSYM_ADDR: ret=%d\n", ret);
       if (!ret)
-        printf("%"PRIu64"\n", addr);
+        printf("%" PRIu64 "\n", addr);
 
     } else if (!strcmp(in->cmd, "GET_USYM_NAME")) {
       int ret, pid, demangle;
@@ -739,7 +763,7 @@ int main(int argc, char **argv) {
           name = sym.demangle_name;
         else
           name = sym.name;
-        printf("%s;%"PRIu64";%s\n", name, sym.offset, sym.module);
+        printf("%s;%" PRIu64 ";%s\n", name, sym.offset, sym.module);
       }
       bcc_symbol_free_demangle_name(&sym);
 
@@ -759,10 +783,10 @@ int main(int argc, char **argv) {
       ret = bcc_symcache_resolve_name(usym_cache->cache, module, name, &addr);
       printf("GET_USYM_ADDR: ret=%d\n", ret);
       if (!ret)
-        printf("%"PRIu64"\n", addr);
+        printf("%" PRIu64 "\n", addr);
 
     } else {
-invalid_command:
+    invalid_command:
       printf("Command not recognized\n");
     }
 

@@ -16,18 +16,19 @@
  * limitations under the License.
  */
 
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 /**
 * characters used for Base64 encoding
 */
-const char *BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const char *BASE64_CHARS =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 /**
 * encode three bytes using base64 (RFC 3548)
@@ -38,7 +39,7 @@ const char *BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
 void _base64_encode_triple(unsigned char triple[3], char result[4]) {
   int tripleValue, i;
 
-  tripleValue = triple[0] ;
+  tripleValue = triple[0];
   tripleValue *= 256;
   tripleValue += triple[1];
   tripleValue *= 256;
@@ -59,14 +60,14 @@ void _base64_encode_triple(unsigned char triple[3], char result[4]) {
 * @param targetlen the length of the target buffer
 * @return 1 on success, 0 otherwise
 */
-int base64_encode(unsigned char *source, size_t sourcelen, char *target, size_t targetlen) {
+int base64_encode(unsigned char *source, size_t sourcelen, char *target,
+                  size_t targetlen) {
   /* check if the result will fit in the target buffer */
-  if ((sourcelen+2)/3*4 > targetlen-1)
+  if ((sourcelen + 2) / 3 * 4 > targetlen - 1)
     return 0;
 
   /* encode all full triples */
-  while (sourcelen >= 3)
-  {
+  while (sourcelen >= 3) {
     _base64_encode_triple(source, target);
     sourcelen -= 3;
     source += 3;
@@ -74,8 +75,7 @@ int base64_encode(unsigned char *source, size_t sourcelen, char *target, size_t 
   }
 
   /* encode the last one or two characters */
-  if (sourcelen > 0)
-  {
+  if (sourcelen > 0) {
     unsigned char temp[3];
     memset(temp, 0, sizeof(temp));
     memcpy(temp, source, sourcelen);
@@ -101,15 +101,15 @@ int base64_encode(unsigned char *source, size_t sourcelen, char *target, size_t 
 */
 int _base64_char_value(char base64char) {
   if (base64char >= 'A' && base64char <= 'Z')
-    return base64char-'A';
+    return base64char - 'A';
   if (base64char >= 'a' && base64char <= 'z')
-    return base64char-'a'+26;
+    return base64char - 'a' + 26;
   if (base64char >= '0' && base64char <= '9')
-    return base64char-'0'+2*26;
+    return base64char - '0' + 2 * 26;
   if (base64char == '+')
-    return 2*26+10;
+    return 2 * 26 + 10;
   if (base64char == '/')
-    return 2*26+11;
+    return 2 * 26 + 11;
   return -1;
 }
 
@@ -128,12 +128,9 @@ int _base64_decode_triple(char quadruple[4], unsigned char *result) {
     char_value[i] = _base64_char_value(quadruple[i]);
 
   /* check if the characters are valid */
-  for (i = 3; i >= 0; i--)
-  {
-    if (char_value[i] < 0)
-    {
-      if (only_equals_yet && quadruple[i] == '=')
-      {
+  for (i = 3; i >= 0; i--) {
+    if (char_value[i] < 0) {
+      if (only_equals_yet && quadruple[i] == '=') {
         /* we will ignore this character anyway, make it something
         * that does not break our calculations */
         char_value[i] = 0;
@@ -153,7 +150,7 @@ int _base64_decode_triple(char quadruple[4], unsigned char *result) {
   /* make one big value out of the partial values */
   triple_value = char_value[0];
   triple_value *= 64;
-  triple_value += char_value[1] ;
+  triple_value += char_value[1];
   triple_value *= 64;
   triple_value += char_value[2];
   triple_value *= 64;
@@ -162,8 +159,7 @@ int _base64_decode_triple(char quadruple[4], unsigned char *result) {
   /* break the big value into bytes */
   for (i = bytes_to_decode; i < 3; i++)
     triple_value /= 256;
-  for (i = bytes_to_decode - 1; i >= 0; i--)
-  {
+  for (i = bytes_to_decode - 1; i >= 0; i--) {
     result[i] = triple_value % 256;
     triple_value /= 256;
   }
@@ -195,11 +191,9 @@ size_t base64_decode(char *source, unsigned char *target, size_t targetlen) {
   tmpptr = src;
 
   /* convert as long as we get a full result */
-  while (tmplen == 3)
-  {
+  while (tmplen == 3) {
     /* get 4 characters to convert */
-    for (i = 0; i < 4; i++)
-    {
+    for (i = 0; i < 4; i++) {
       /* skip invalid characters - we won't reach the end */
       while (*tmpptr != '=' && _base64_char_value(*tmpptr) < 0)
         tmpptr++;
@@ -211,8 +205,7 @@ size_t base64_decode(char *source, unsigned char *target, size_t targetlen) {
     tmplen = _base64_decode_triple(quadruple, (unsigned char *)tmpresult);
 
     /* check if the fit in the result buffer */
-    if (targetlen < tmplen)
-    {
+    if (targetlen < tmplen) {
       free(src);
       return -1;
     }
@@ -244,7 +237,8 @@ void test_base64(char *file) {
   strcat(fileout, file);
   strcat(fileout, ".b64dec");
 
-  printf("Encoding and then decoding %s into %s, filesize is %d\n", file, fileout, (int) size);
+  printf("Encoding and then decoding %s into %s, filesize is %d\n", file,
+         fileout, (int)size);
 
   encoded = (char *)malloc((size * 4) + 1);
   encoded[(size * 4)] = 0;

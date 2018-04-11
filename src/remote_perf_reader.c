@@ -23,18 +23,18 @@
  * struct here
  */
 
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <linux/bpf.h>
 #include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <linux/bpf.h>
-#include <arpa/inet.h>
-#include "perf_reader.h"
+#include <unistd.h>
 #include "bpfd.h"
+#include "perf_reader.h"
 
 #define MAX_READERS 1024
 
@@ -46,7 +46,7 @@ void remote_raw_reader_cb(void *cookie, void *raw, int size) {
 
   raw_str = malloc(size * 4);
 
-  if (!base64_encode(raw, size, raw_str, size*4))
+  if (!base64_encode(raw, size, raw_str, size * 4))
     printf("raw_cb: b64 encode failed for reader fd=%d\n", reader->fd);
 
   printf("%d %d %s\n", reader->fd, size, raw_str);

@@ -31,8 +31,7 @@ int count_num_tokens(const char *str) {
   str_copy = (char *)malloc(strlen(str) + 1);
   strcpy(str_copy, str);
 
-  for (token = strtok(str_copy, " ");
-       token != NULL;
+  for (token = strtok(str_copy, " "); token != NULL;
        token = strtok(NULL, " ")) {
     num_tokens++;
   }
@@ -50,7 +49,8 @@ struct user_input *parse_user_input(const char *str) {
 
   in = (struct user_input *)malloc(sizeof(struct user_input));
   in->num_args = num_tokens > 1 ? num_tokens - 1 : 0;
-  in->args = in->num_args > 0 ? (char **)malloc(in->num_args * sizeof(char *)) : NULL;
+  in->args =
+      in->num_args > 0 ? (char **)malloc(in->num_args * sizeof(char *)) : NULL;
 
   if (num_tokens == 0) {
     in->cmd = NULL;
@@ -64,8 +64,8 @@ struct user_input *parse_user_input(const char *str) {
   in->cmd = (char *)malloc(strlen(token) + 1);
   strcpy(in->cmd, token);
 
-  if(in->num_args > 0) {
-    while((token = strtok(NULL, " "))) {
+  if (in->num_args > 0) {
+    while ((token = strtok(NULL, " "))) {
       in->args[arg_index] = (char *)malloc(strlen(token) + 1);
       strcpy(in->args[arg_index], token);
       arg_index++;
@@ -113,17 +113,18 @@ int parse_uint32_arg(const struct user_input *in, int index, uint32_t *val) {
   if (index < 0 || index > in->num_args - 1)
     return -1;
 
-  return !(sscanf(in->args[index], "%"SCNu32"", val) == 1);
+  return !(sscanf(in->args[index], "%" SCNu32 "", val) == 1);
 }
 
 int parse_uint64_arg(const struct user_input *in, int index, uint64_t *val) {
   if (index < 0 || index > in->num_args - 1)
     return -1;
 
-  return !(sscanf(in->args[index], "%"SCNu64"", val) == 1);
+  return !(sscanf(in->args[index], "%" SCNu64 "", val) == 1);
 }
 
-int parse_ull_arg(const struct user_input *in, int index, unsigned long long *val) {
+int parse_ull_arg(const struct user_input *in, int index,
+                  unsigned long long *val) {
   if (index < 0 || index > in->num_args - 1)
     return -1;
 
