@@ -26,12 +26,12 @@ extern "C" {
 
 typedef int (*bpf_create_map_cb_t)(void *data);
 struct bpf_create_map_args {
-	unsigned int type;
-	char *name;
-	unsigned int key_size;
-	unsigned int value_size;
-	unsigned int max_entries;
-	unsigned int map_flags;
+  unsigned int type;
+  char *name;
+  unsigned int key_size;
+  unsigned int value_size;
+  unsigned int max_entries;
+  unsigned int map_flags;
 };
 
 extern bpf_create_map_cb_t bpf_create_map_cb;
